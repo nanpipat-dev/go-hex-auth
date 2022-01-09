@@ -125,3 +125,41 @@ func (h *MemberHandlers) Login(c *fiber.Ctx) error {
 	})
 
 }
+
+func (h *MemberHandlers) Refresh(c *fiber.Ctx) error {
+	var request struct {
+		RefreshToken string `json:"refresh_token"`
+	}
+
+	var err error
+
+	err = c.BodyParser(&request)
+	if err != nil {
+		return c.
+			Status(fiber.StatusBadRequest).
+			JSON("Error incorrect input syntax")
+	}
+
+	refresh, err := h.service.Refresh(request.RefreshToken)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(&fiber.Map{
+			"status": &fiber.Map{
+				"code": fiber.StatusBadRequest,
+				"message": []string{
+					err.Error(),
+				},
+			},
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(&fiber.Map{
+		"status": &fiber.Map{
+			"code": fiber.StatusOK,
+			"message": []string{
+				"Success",
+			},
+		},
+		"data": refresh,
+	})
+
+}

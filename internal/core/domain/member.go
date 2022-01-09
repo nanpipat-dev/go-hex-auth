@@ -5,12 +5,12 @@ import (
 )
 
 // ===================== gorm model zone ===================== //
-func MigrateProfileImage(db *gorm.DB) {
+func MigrateDatabase(db *gorm.DB) {
 	if db == nil {
 		panic("An error when connect database")
 	}
 
-	db.AutoMigrate(Members{})
+	db.AutoMigrate(Members{}, Token{})
 }
 
 type Members struct {
@@ -42,6 +42,11 @@ type MembersResponse struct {
 	Username  string `json:"username"`
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
+}
+
+type LoginResponse struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
 }
 
 // ===================== member model ===================== //

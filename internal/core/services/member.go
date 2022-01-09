@@ -5,12 +5,17 @@ import (
 	"go-hex-auth/internal/core/domain"
 	"go-hex-auth/internal/repositories"
 	"go-hex-auth/package/security"
+	"time"
 )
+
+const SecretKey = "secret"
 
 type MemberServiceInterface interface {
 	CreateMember(m domain.MembersRequest) error
 	GetMember(memberid string) (domain.MembersResponse, error)
-	Login(username, password string) (domain.MembersResponse, error)
+	Login(username, password string) (domain.LoginResponse, error)
+	CheckRefreshToken(refresh string) (bool, error)
+	Refresh(refresh string) (domain.LoginResponse, error)
 }
 
 type MemberService struct {
@@ -55,20 +60,105 @@ func (s *MemberService) GetMember(memberid string) (domain.MembersResponse, erro
 	return member, nil
 }
 
-func (s *MemberService) Login(username, password string) (domain.MembersResponse, error) {
+func (s *MemberService) Login(username, password string) (domain.LoginResponse, error) {
 	check, err := s.repo.Login(username)
 	if err != nil {
-		return domain.MembersResponse{}, errors.New("invalid username")
+		return domain.LoginResponse{}, errors.New("invalid username")
 	}
 
 	err = security.VerifyPassword(check.Password, password)
 	if err != nil {
-		return domain.MembersResponse{}, errors.New("invalid password")
+		return domain.LoginResponse{}, errors.New("invalid password")
 	}
 
-	res := domain.MembersResponse{
-		MemberID: check.MemberID,
+	token, err := security.NewToken(check.MemberID)
+
+	if err != nil {
+		return domain.LoginResponse{}, err
+	}
+
+	refresh, err := security.RefreshToken(check.MemberID)
+	if err != nil {
+		return domain.LoginResponse{}, err
+	}
+	expire := time.Now().Add(time.Minute * 1).Unix()
+
+	refreshObj := domain.Token{
+		MemberID:     check.MemberID,
+		RefreshToken: refresh,
+		Expire:       int32(expire),
+	}
+
+	err = s.repo.CreateToken(refreshObj)
+	if err != nil {
+		return domain.LoginResponse{}, err
+	}
+	// fmt.Println(token, "token")
+	// resclaims, err := security.ParseToken(token)
+	// if err != nil {
+	// 	return domain.LoginResponse{}, err
+	// }
+
+	// fmt.Println(resclaims.Id, "resclaims")
+
+	res := domain.LoginResponse{
+		AccessToken:  token,
+		RefreshToken: refresh,
 	}
 
 	return res, nil
+}
+
+func (s *MemberService) CheckRefreshToken(refresh string) (bool, error) {
+	refreshTk, err := security.RefreshCheck(refresh)
+	if err != nil {
+		return false, err
+	}
+	return s.repo.GetRefreshToken(refresh, refreshTk)
+}
+
+func (s *MemberService) Refresh(refresh string) (domain.LoginResponse, error) {
+	refreshTk, err := security.RefreshCheck(refresh)
+	if err != nil {
+		return domain.LoginResponse{}, errors.New("invalid token")
+	}
+
+	check, err := s.repo.GetRefreshToken(refresh, refreshTk)
+	if err != nil {
+		return domain.LoginResponse{}, errors.New("invalid token")
+	}
+
+	if !check {
+		return domain.LoginResponse{}, errors.New("seesion expired")
+	}
+
+	token, err := security.NewToken(refreshTk)
+
+	if err != nil {
+		return domain.LoginResponse{}, err
+	}
+
+	refresh_token, err := security.RefreshToken(refreshTk)
+	if err != nil {
+		return domain.LoginResponse{}, err
+	}
+	expire := time.Now().Add(time.Minute * 1).Unix()
+
+	refreshObj := domain.Token{
+		MemberID:     refreshTk,
+		RefreshToken: refresh_token,
+		Expire:       int32(expire),
+	}
+
+	err = s.repo.CreateToken(refreshObj)
+	if err != nil {
+		return domain.LoginResponse{}, err
+	}
+	res := domain.LoginResponse{
+		AccessToken:  token,
+		RefreshToken: refresh,
+	}
+
+	return res, nil
+
 }
