@@ -68,7 +68,7 @@ func Start() error {
 		routes.MemberRoutes(api, memberHandlers)
 	}
 
-	err = app.Listen(":" + configs.GetViper().App.Port)
+	err = app.Listen(":" + os.Getenv("PORT"))
 	if err != nil {
 		return err
 	}
