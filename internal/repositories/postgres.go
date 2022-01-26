@@ -10,7 +10,7 @@ import (
 )
 
 type MemberRepositoryInterface interface {
-	CreateMember(m domain.Members) error
+	CreateMember(m domain.Members) (string, error)
 	GetMember(memberid string) (domain.MembersResponse, error)
 	Login(username string) (domain.Members, error)
 	CreateToken(token domain.Token) error
@@ -28,12 +28,23 @@ func NewRepository(db *gorm.DB) *MemberRepository {
 	}
 }
 
-func (r *MemberRepository) CreateMember(m domain.Members) error {
-	tx := r.db.Create(&m)
-	if tx.Error != nil {
-		return tx.Error
+func (r *MemberRepository) CreateMember(m domain.Members) (string, error) {
+	member := []domain.Members{}
+
+	check := r.db.Where("username = ?", m.Username).Find(&member)
+	if check.Error != nil {
+		return "", check.Error
 	}
-	return nil
+
+	if len(member) > 0 {
+		return "", errors.New("username is already exists")
+	} else {
+		tx := r.db.Create(&m)
+		if tx.Error != nil {
+			return "", tx.Error
+		}
+		return m.MemberID, nil
+	}
 }
 
 func (r *MemberRepository) CreateToken(token domain.Token) error {

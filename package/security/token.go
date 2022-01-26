@@ -22,7 +22,7 @@ func NewToken(userId string) (string, error) {
 	claims :=
 		jwt.StandardClaims{
 			Id:        userId,
-			ExpiresAt: time.Now().Add((time.Minute * 5)).Unix(),
+			ExpiresAt: time.Now().Add((time.Minute * 15)).Unix(),
 		}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(JwtSecretKey)
@@ -32,7 +32,7 @@ func RefreshToken(userId string) (string, error) {
 	claims :=
 		jwt.StandardClaims{
 			Id:        userId,
-			ExpiresAt: time.Now().Add((time.Minute * 60)).Unix(),
+			ExpiresAt: time.Now().Add((time.Minute * 500)).Unix(),
 		}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 

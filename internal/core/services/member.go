@@ -12,7 +12,7 @@ import (
 const SecretKey = "secret"
 
 type MemberServiceInterface interface {
-	CreateMember(m domain.MembersRequest) error
+	CreateMember(m domain.MembersRequest) (domain.LoginResponse, error)
 	GetMember(memberid string) (domain.MembersResponse, error)
 	Login(username, password string) (domain.LoginResponse, error)
 	CheckRefreshToken(refresh string) (bool, error)
@@ -29,11 +29,11 @@ func NewMemberService(repo repositories.MemberRepositoryInterface) *MemberServic
 	}
 }
 
-func (s *MemberService) CreateMember(m domain.MembersRequest) error {
+func (s *MemberService) CreateMember(m domain.MembersRequest) (domain.LoginResponse, error) {
 	uuid := security.GenerateUUID()
 	pwd, err := security.EncryptPassword(m.Password)
 	if err != nil {
-		return err
+		return domain.LoginResponse{}, err
 	}
 
 	member := domain.Members{
@@ -44,12 +44,47 @@ func (s *MemberService) CreateMember(m domain.MembersRequest) error {
 		LastName:  m.LastName,
 	}
 
-	err = s.repo.CreateMember(member)
+	id, err := s.repo.CreateMember(member)
 	if err != nil {
-		return err
+		return domain.LoginResponse{}, err
 	}
 
-	return nil
+	token, err := security.NewToken(id)
+
+	if err != nil {
+		return domain.LoginResponse{}, err
+	}
+
+	refresh, err := security.RefreshToken(id)
+	if err != nil {
+		return domain.LoginResponse{}, err
+	}
+	expire := time.Now().Add((time.Minute * 500)).Unix()
+
+	refreshObj := domain.Token{
+		MemberID:     id,
+		RefreshToken: refresh,
+		Expire:       int32(expire),
+	}
+
+	err = s.repo.CreateToken(refreshObj)
+	if err != nil {
+		return domain.LoginResponse{}, err
+	}
+	// fmt.Println(token, "token")
+	// resclaims, err := security.ParseToken(token)
+	// if err != nil {
+	// 	return domain.LoginResponse{}, err
+	// }
+
+	// fmt.Println(resclaims.Id, "resclaims")
+
+	res := domain.LoginResponse{
+		AccessToken:  token,
+		RefreshToken: refresh,
+	}
+
+	return res, nil
 }
 
 func (s *MemberService) GetMember(memberid string) (domain.MembersResponse, error) {
@@ -82,7 +117,7 @@ func (s *MemberService) Login(username, password string) (domain.LoginResponse, 
 	if err != nil {
 		return domain.LoginResponse{}, err
 	}
-	expire := time.Now().Add((time.Minute * 60)).Unix()
+	expire := time.Now().Add((time.Minute * 500)).Unix()
 
 	refreshObj := domain.Token{
 		MemberID:     check.MemberID,

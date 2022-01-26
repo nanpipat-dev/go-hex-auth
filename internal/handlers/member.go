@@ -30,7 +30,7 @@ func (h *MemberHandlers) CreateMember(c *fiber.Ctx) error {
 			JSON("Error incorrect input syntax")
 	}
 
-	err = h.service.CreateMember(newMember)
+	res, err := h.service.CreateMember(newMember)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(&fiber.Map{
 			"status": &fiber.Map{
@@ -49,6 +49,7 @@ func (h *MemberHandlers) CreateMember(c *fiber.Ctx) error {
 				"Success",
 			},
 		},
+		"data": res,
 	})
 }
 
