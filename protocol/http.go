@@ -37,7 +37,6 @@ func Start() error {
 		configs.GetViper().Postgres.Username,
 		configs.GetViper().Postgres.Password,
 		configs.GetViper().Postgres.DbName,
-		configs.GetViper().Postgres.SSLMode,
 	)
 	if err != nil {
 		logger.Error(err.Error())

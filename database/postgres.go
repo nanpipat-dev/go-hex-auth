@@ -16,7 +16,7 @@ type DB struct {
 
 var dbConnect = &DB{}
 
-func ConnectToPostgreSQL(host, port, username, pass, dbname string, sslmode bool) (*DB, error) {
+func ConnectToPostgreSQL(host, port, username, pass, dbname string) (*DB, error) {
 	fmt.Println("User is: ", username)
 	fmt.Println("Password is: ", pass)
 	fmt.Println("Host is: ", host)
@@ -34,11 +34,13 @@ func ConnectToPostgreSQL(host, port, username, pass, dbname string, sslmode bool
 		port = "5432"
 	}
 
-	if sslmode {
-		connectionStr = fmt.Sprintf("host=%v user=%v password=%v dbname=%v port=%v", host, username, pass, dbname, port)
-	} else {
-		connectionStr = fmt.Sprintf("host=%v user=%v password=%v dbname=%v port=%v", host, username, pass, dbname, port)
-	}
+	// if sslmode {
+	// 	connectionStr = fmt.Sprintf("host=%v user=%v password=%v dbname=%v port=%v", host, username, pass, dbname, port)
+	// } else {
+	// 	connectionStr = fmt.Sprintf("host=%v user=%v password=%v dbname=%v port=%v", host, username, pass, dbname, port)
+	// }
+
+	connectionStr = fmt.Sprintf("host=%v user=%v password=%v dbname=%v port=%v", host, username, pass, dbname, port)
 
 	//connect postgres
 	dial := postgres.Open(connectionStr)

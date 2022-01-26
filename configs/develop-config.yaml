@@ -8,4 +8,3 @@ postgres:
   username: DB_USERNAME
   password: DB_PASSWORD
   database: DB_DBNAME
-  sslmode: DB_SSL

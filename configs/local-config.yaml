@@ -8,4 +8,3 @@ postgres:
   username: tjrmodncldkrto
   password: 1699d44eaa7f645b0971ccd652c5dea2684a42338237661bd439170d46f4cd6a
   database: d5mdhb8itu0nj9
-  sslmode: 'false'

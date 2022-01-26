@@ -26,7 +26,6 @@ type Postgres struct {
 	Username string `mapstructure:"username"`
 	Password string `mapstructure:"password"`
 	DbName   string `mapstructure:"database"`
-	SSLMode  bool   `mapstructure:"sslmode"`
 }
 
 var config Config
