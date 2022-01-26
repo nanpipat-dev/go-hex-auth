@@ -12,5 +12,6 @@ func MemberRoutes(api fiber.Router, handler *handlers.MemberHandlers) {
 		api.Get("/get", handler.GetMember)
 		api.Post("/login", handler.Login)
 		api.Post("/refresh", handler.Refresh)
+		api.Get("/validate", handler.Validate)
 	}
 }

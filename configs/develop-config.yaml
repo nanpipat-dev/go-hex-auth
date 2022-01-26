@@ -1,0 +1,11 @@
+app:
+  env: APP_ENV
+  debug: APP_DEBUG
+  port: APP_PORT
+postgres:
+  host: DB_HOST
+  port: DB_PORT
+  username: DB_USERNAME
+  password: DB_PASSWORD
+  database: DB_DBNAME
+  sslmode: DB_SSL

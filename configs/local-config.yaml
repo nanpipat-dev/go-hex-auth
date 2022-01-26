@@ -1,11 +1,11 @@
 app:
   env: local
   debug: 'false'
-  port: 8000
+  port: 8081
 postgres:
-  host: localhost
+  host: ec2-44-194-201-94.compute-1.amazonaws.com
   port: 5432
-  username: postgres
-  password: 1234
-  database: nanpipat_db
+  username: tjrmodncldkrto
+  password: 1699d44eaa7f645b0971ccd652c5dea2684a42338237661bd439170d46f4cd6a
+  database: d5mdhb8itu0nj9
   sslmode: 'false'

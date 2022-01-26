@@ -3,6 +3,7 @@ package handlers
 import (
 	"go-hex-auth/internal/core/domain"
 	"go-hex-auth/internal/core/services"
+	"go-hex-auth/package/security"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -59,6 +60,43 @@ func (h *MemberHandlers) GetMember(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(&fiber.Map{
 			"status": &fiber.Map{
 				"code": fiber.StatusBadRequest,
+				"message": []string{
+					err.Error(),
+				},
+			},
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(&fiber.Map{
+		"status": &fiber.Map{
+			"code": fiber.StatusOK,
+			"message": []string{
+				"Success",
+			},
+		},
+		"data": members,
+	})
+}
+
+func (h *MemberHandlers) Validate(c *fiber.Ctx) error {
+	token := c.Request().Header.Peek("Authorization")
+	member, err := security.ParseToken(string(token))
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(&fiber.Map{
+			"status": &fiber.Map{
+				"code": fiber.StatusUnauthorized,
+				"message": []string{
+					err.Error(),
+				},
+			},
+		})
+	}
+
+	members, err := h.service.GetMember(member.Id)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(&fiber.Map{
+			"status": &fiber.Map{
+				"code": fiber.StatusUnauthorized,
 				"message": []string{
 					err.Error(),
 				},

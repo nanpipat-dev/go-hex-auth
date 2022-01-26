@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"go-hex-auth/internal/core/domain"
 	"go-hex-auth/internal/repositories"
 	"go-hex-auth/package/security"
@@ -81,7 +82,7 @@ func (s *MemberService) Login(username, password string) (domain.LoginResponse, 
 	if err != nil {
 		return domain.LoginResponse{}, err
 	}
-	expire := time.Now().Add(time.Minute * 1).Unix()
+	expire := time.Now().Add((time.Minute * 60)).Unix()
 
 	refreshObj := domain.Token{
 		MemberID:     check.MemberID,
@@ -122,6 +123,8 @@ func (s *MemberService) Refresh(refresh string) (domain.LoginResponse, error) {
 	if err != nil {
 		return domain.LoginResponse{}, errors.New("invalid token")
 	}
+
+	fmt.Println(refreshTk, "refresh")
 
 	check, err := s.repo.GetRefreshToken(refresh, refreshTk)
 	if err != nil {

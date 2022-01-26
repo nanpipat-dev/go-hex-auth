@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"errors"
+	"fmt"
 	"go-hex-auth/internal/core/domain"
 	"time"
 
@@ -45,7 +46,13 @@ func (r *MemberRepository) CreateToken(token domain.Token) error {
 
 func (r *MemberRepository) GetMember(memberid string) (domain.MembersResponse, error) {
 	member := domain.Members{}
+	condition, err := whereCondition()
+	if err != nil {
+		fmt.Println("err")
+	}
+	fmt.Println(condition)
 	tx := r.db.Where("member_id = ?", memberid).First(&member)
+	// tx := r.db.Where(condition).Find(&member)
 	if tx.Error != nil {
 		return domain.MembersResponse{}, tx.Error
 	}
@@ -58,6 +65,26 @@ func (r *MemberRepository) GetMember(memberid string) (domain.MembersResponse, e
 	}
 
 	return res, nil
+}
+
+func whereCondition() (map[string]interface{}, error) {
+	expressions := map[string]interface{}{}
+	id := "0a97eed9-88df-481d-aae6-f20df9ebe24c"
+	name := "toptest"
+	last := ""
+
+	if id != "" {
+		expressions["member_id like"] = "%" + id + "%"
+	}
+	if name != "" {
+		expressions["username"] = name
+	}
+
+	if last != "" {
+		expressions["last"] = last
+	}
+
+	return expressions, nil
 }
 
 func (r *MemberRepository) Login(username string) (domain.Members, error) {
